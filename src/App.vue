@@ -7,19 +7,20 @@ import { RouterLink, RouterView } from 'vue-router'
     <div class="wrapper">
       <nav>
         <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/notify">1.Notify</RouterLink>
         <RouterLink to="/about">About</RouterLink>
       </nav>
     </div>
   </header>
 
-  <hr>
+  <hr />
 
   <RouterView />
 </template>
 
 <style lang="scss">
-  .wrapper nav {
-    display: flex;
-    gap: 1rem;
-  }
+.wrapper nav {
+  display: flex;
+  gap: 1rem;
+}
 </style>
