@@ -3,6 +3,8 @@ import { onMounted, onUnmounted, reactive, watch, ref, nextTick } from 'vue'
 import io from 'socket.io-client'
 import dayjs from 'dayjs'
 
+import { getMessages } from '@/apis/messages.js'
+
 let socket = {}
 const messageArea = ref(null)
 
@@ -11,30 +13,39 @@ const chatStatus = reactive({
   content: ''
 })
 
-const messages = reactive([])
+const messages = ref([])
 
-watch(messages, () => {
-  // 若捲軸在最下方，則有新訊息時，捲軸持續在最下方
-  if (
-    Math.abs(
-      messageArea.value.scrollTop + messageArea.value.offsetHeight - messageArea.value.scrollHeight
-    ) <= 10
-  ) {
-    nextTick(() => {
-      messageArea.value.scrollTop = messageArea.value.scrollHeight
-    })
-  }
-})
+watch(
+  messages,
+  () => {
+    // 若捲軸在最下方，則有新訊息時，捲軸持續在最下方
+    if (
+      Math.abs(
+        messageArea.value.scrollTop +
+          messageArea.value.offsetHeight -
+          messageArea.value.scrollHeight
+      ) <= 10
+    ) {
+      nextTick(() => {
+        messageArea.value.scrollTop = messageArea.value.scrollHeight
+      })
+    }
+  },
+  { deep: true }
+)
 
 onMounted(() => {
-  const URL = 'http://localhost:3005/'
+  const URL = 'localhost:3005/'
   socket = io(URL, { transports: ['websocket'] })
 
   // 2. 處理聊天訊息
   socket.on('chatMessage', (data) => {
     console.log('data from server:', data)
-    messages.push(data)
+    messages.value.push(data)
   })
+
+  // 3. 取得聊天資料
+  getMessage()
 })
 
 onUnmounted(() => {
@@ -44,10 +55,19 @@ onUnmounted(() => {
 function sendMessage({ user, content }) {
   socket.emit('chatMessage', { user, content })
 }
+
+async function getMessage(query) {
+  try {
+    const { data } = await getMessages(query)
+    messages.value = data.data
+  } catch (error) {
+    console.error(error)
+  }
+}
 </script>
 
 <template>
-  <div>2. 跟其他使用者聊天</div>
+  <div>3. 記錄聊天訊息</div>
   <div class="flex justify-center">
     <div>
       <div class="overflow-y-auto h-[300px] max-w-xs" ref="messageArea">
